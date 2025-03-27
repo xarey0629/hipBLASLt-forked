@@ -82,6 +82,10 @@ def initAsmCaps(isaVersion, assemblerPath, isDebug) -> dict:
                                 or _tryAssembler(isaVersion, assemblerPath, "v_wmma_f32_16x16x16_f16 v[0:3], v[8:9], v[16:17], v[0:3]", isDebug)
     rv["HasWMMA_V1"]        = _tryAssembler(isaVersion, assemblerPath, "v_wmma_f32_16x16x16_f16 v[0:3], v[8:15], v[16:23], v[0:3]", isDebug)
     rv["HasWMMA_V2"]        = _tryAssembler(isaVersion, assemblerPath, "v_wmma_f32_16x16x16_f16 v[0:3], v[8:9], v[16:17], v[0:3]", isDebug)
+    # Add HasSWMMA
+    # rv["HasSWMMA"]          = _tryAssembler(isaVersion, assemblerPath, "v_swmmac_f32_16x16x32_f16 v[0:7], v[32:35], v[36:43], v[44]", isDebug)
+    rv["HasSWMMA"]          = True # NOTE: Just assume we support SWMMA for now. 
+
 
     rv["v_mac_f16"]         = _tryAssembler(isaVersion, assemblerPath, "v_mac_f16 v47, v36, v34", isDebug)
 

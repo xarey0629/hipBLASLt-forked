@@ -3297,7 +3297,7 @@ class KernelWriter(metaclass=abc.ABCMeta):
         if kernel["WavefrontSize"] == 32 and not self.states.asmCaps["HasSWMMA"]:
           raise RuntimeError("Sparse MatrixInstruction SWMMA not supported for {0}".format(self.states.version))
         if kernel["WavefrontSize"] == 64 and not self.states.asmCaps["HasSMFMA"]:
-          raise RuntimeError("Sparse MatrixInstruction SMFMA not supported for {0}".format(self.states.version))
+          raise RuntimeError("Sparse MatrixInstructions SMFMA & SMFMA not supported for {0}".format(self.states.version))
 
       if (kernel["EnableF32XdlMathOp"] and kernel["ProblemType"]["F32XdlMathOp"].isXFloat32() and (not self.states.asmCaps["HasMFMA_xf32"])):
         raise RuntimeError("XF32 MatrixInstruction not supported for {0}".format(self.states.version))
@@ -3327,7 +3327,8 @@ class KernelWriter(metaclass=abc.ABCMeta):
 
     self.states.bpeCexternalGSU1 = int(self.states.bpr * kernel["ProblemType"]["DestDataType"].numRegisters())
     self.states.bpeCexternal = self.states.bpeCexternalGSU1
-    if kernel["_GlobalAccumulation"] and kernel["_GlobalAccumulation"] != 'PartialsBuffer':
+    # Check GSU is larger than 0 if buffer is used
+    if kernel["GlobalSplitU"] > 0 and kernel["_GlobalAccumulation"] and kernel["_GlobalAccumulation"] != 'PartialsBuffer':
       self.states.bpeCexternal = self.states.bpeCinternal
 
 

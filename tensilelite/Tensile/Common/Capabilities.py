@@ -10,6 +10,7 @@ def _tryAssembler(
     assemblerPath: str,
     asmString: str,
     debug: bool = False,
+    isWave32: bool = False, # isWave32: New parameter to check if the wavefront size is 32 only
     *options
 ) -> bool:
     """
@@ -18,7 +19,7 @@ def _tryAssembler(
     """
     options = list(options)
 
-    if isaVersion[0] >= 10:
+    if not isWave32 and isaVersion[0] >= 10:
         options += ["-mwavefrontsize64"]
 
     args = [
@@ -82,10 +83,10 @@ def initAsmCaps(isaVersion, assemblerPath, isDebug) -> dict:
                                 or _tryAssembler(isaVersion, assemblerPath, "v_wmma_f32_16x16x16_f16 v[0:3], v[8:9], v[16:17], v[0:3]", isDebug)
     rv["HasWMMA_V1"]        = _tryAssembler(isaVersion, assemblerPath, "v_wmma_f32_16x16x16_f16 v[0:3], v[8:15], v[16:23], v[0:3]", isDebug)
     rv["HasWMMA_V2"]        = _tryAssembler(isaVersion, assemblerPath, "v_wmma_f32_16x16x16_f16 v[0:3], v[8:9], v[16:17], v[0:3]", isDebug)
-    # Add HasSWMMA
-    # rv["HasSWMMA"]          = _tryAssembler(isaVersion, assemblerPath, "v_swmmac_f32_16x16x32_f16 v[0:7], v[32:35], v[36:43], v[44]", isDebug)
-    rv["HasSWMMA"]          = True # NOTE: Just assume we support SWMMA for now. 
-
+    
+    # SPARSE: Add "HasSWMMA", which uses new param 'isWave32' to identify the wavefront size
+    rv["HasSWMMA"]          = _tryAssembler(isaVersion, assemblerPath, "v_swmmac_f32_16x16x32_f16 v[0:3], v[32:33], v[36:39], v[44]", isDebug) \
+                                or  _tryAssembler(isaVersion, assemblerPath, "v_swmmac_f32_16x16x32_f16 v[0:7], v[32:35], v[36:43], v[44]", isDebug, isWave32 = True)   # Wave32
 
     rv["v_mac_f16"]         = _tryAssembler(isaVersion, assemblerPath, "v_mac_f16 v47, v36, v34", isDebug)
 
@@ -160,6 +161,7 @@ def initArchCaps(isaVersion) -> dict:
     rv["SeparateVMcnt"]      = isaVersion[0] == (12)
     rv["CMPXWritesSGPR"]     = isaVersion[0] not in (10, 11, 12)
     rv["HasWave32"]          = isaVersion[0] in (10, 11, 12)
+    rv["HasOnlyWave32"]      = (isaVersion in [(12, 5, 0)])     # New Parameter to check if the wavefront size is 32 only, e.g. for gfx1250 (mi450)
     rv["HasAccCD"]           = (isaVersion in [(9,0,10), (9,4,0), (9,4,1), (9,4,2)])
     rv["ArchAccUnifiedRegs"] = (isaVersion in [(9,0,10), (9,4,0), (9,4,1), (9,4,2)])
     rv["CrosslaneWait"]      = (isaVersion in [(9,4,0), (9,4,1), (9,4,2)])
@@ -167,10 +169,10 @@ def initArchCaps(isaVersion) -> dict:
     rv["TransOpWait"]        = (isaVersion in [(9,4,0), (9,4,1), (9,4,2)])
     rv["SDWAWait"]           = (isaVersion in [(9,4,0), (9,4,1), (9,4,2)])
     rv["VgprBank"]           = (isaVersion[0] in (10, 11, 12))
-    rv["DSLow16NotPreserve"]       = isaVersion[0] == (12)
+    rv["DSLow16NotPreserve"] = isaVersion[0] == (12)
     rv["WrokGroupIdFromTTM"] = isaVersion[0] == (12)
     rv["NoSDWA"]             = isaVersion[0] == (12)
-    rv["VOP3ByteSel"]      = isaVersion[0] == (12)
+    rv["VOP3ByteSel"]        = isaVersion[0] == (12)
     rv["HasFP8_OCP"]         = isaVersion[0] == (12)
     # fmt: on
     return rv

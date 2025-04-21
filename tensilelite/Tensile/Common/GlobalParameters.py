@@ -508,8 +508,11 @@ validSMFMA["F8N"] = [[32, 32, 32, 1], [16, 16, 64, 1]]
 validSMFMA["B8N"] = validSMFMA["F8N"]
 validSMFMA["F8B8N"] = validSMFMA["F8N"]
 validSMFMA["B8F8N"] = validSMFMA["F8N"]
+validSWMMA = [
+    [16, 16, 32, 1],
+]
 validSMFMA["_format9"] = []
-for SMFMA in [validSMFMA["H"], validSMFMA["B"], validSMFMA["4xi8"], validSMFMA["F8N"]]:
+for SMFMA in [validSMFMA["H"], validSMFMA["B"], validSMFMA["4xi8"], validSMFMA["F8N"], validSWMMA]:
     for MI in SMFMA:
         for bm in range(int(math.log(MI[3], 2)) + 1):
             for tt0 in range(1, validTT + 1):
@@ -519,9 +522,9 @@ for SMFMA in [validSMFMA["H"], validSMFMA["B"], validSMFMA["4xi8"], validSMFMA["
                             validSMFMA["_format9"].append(
                                 [MI[0], MI[1], MI[2], MI[3], 2**bm, tt0, tt1, 2**wave_m, 2**wave_n]
                             )
-validSparseMatrixInstructions = validSMFMA["H"] + validSMFMA["B"] + validSMFMA["4xi8"]
+validSparseMatrixInstructions = validSMFMA["H"] + validSMFMA["B"] + validSMFMA["4xi8"] + validSMFMA["_format9"]
 validMatrixInstructions = (
-    validMatrixInstructions + validSparseMatrixInstructions + validSMFMA["_format9"]
+    validMatrixInstructions + validSparseMatrixInstructions
 )
 
 

@@ -368,6 +368,8 @@ class SMFMAInstruction(Instruction):
             kStr = "bf16"
         elif iType == InstType.INST_I8:
             kStr = "i8"
+        elif iType == InstType.INST_U8:
+            kStr = "iu8"
         elif iType == InstType.INST_I32:
             kStr = "i32"
         elif iType == InstType.INST_F8:
@@ -388,8 +390,10 @@ class SMFMAInstruction(Instruction):
     def preStr(self) -> None:
         if len(self.variant) == 4:
             variantStr = "{}x{}x{}".format(*self.variant)
+            is_smfma    = self.asmCaps["HasSMFMA"]
+            instructionName = "smfmac" if is_smfma else "swmmac"
             strB = "%ub_" % self.variant[3] if self.variant[3] > 1 else ""
-            self.setInst("v_smfmac_%s_%s_%s%s"%(self.typeConvert(self.accType), variantStr, \
+            self.setInst("v_%s_%s_%s_%s%s"%(instructionName, self.typeConvert(self.accType), variantStr, \
                 strB, self.typeConvert(self.instType)))
         else:
             assert("Currently only support smfma variant 4" and 0)

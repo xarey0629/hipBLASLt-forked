@@ -43,7 +43,7 @@ from .Common import assignParameterWithDefault, \
                     globalParameters, internalParameters, \
                     print2, printExit, printWarning, \
                     validMFMA, validSMFMA, validParameters, \
-                    validGEMMTypes, HPATypes, roundUp, validWMMA, INDEX_CHARS
+                    validGEMMTypes, HPATypes, roundUp, validWMMA, validSWMMA, INDEX_CHARS
 
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -1747,9 +1747,13 @@ class Solution(collections.abc.Mapping):
           if state["MatrixInstruction"] not in validWMMA:
             reject(state, "MatrixInstruction %s not valid for DataType %s" % (state["MatrixInstruction"], state["ProblemType"]["DataType"]))
       else:
-        if not (state["ProblemType"]["DataType"].toChar() in validSMFMA and \
-          state["MatrixInstruction"] in validSMFMA[state["ProblemType"]["DataType"].toChar()]):
-          reject(state, "Sparse MatrixInstruction %s not valid for DataType %s" % (state["MatrixInstruction"], state["ProblemType"]["DataType"]))
+        if globalParameters["AsmCaps"][isa]["HasSMFMA"]:
+          if not (state["ProblemType"]["DataType"].toChar() in validSMFMA and \
+            state["MatrixInstruction"] in validSMFMA[state["ProblemType"]["DataType"].toChar()]):
+            reject(state, "Sparse MatrixInstruction %s not valid for DataType %s" % (state["MatrixInstruction"], state["ProblemType"]["DataType"]))
+        elif globalParameters["AsmCaps"][isa]["HasSWMMA"]:
+          if state["MatrixInstruction"] not in validSWMMA:
+            reject(state, "Sparse MatrixInstruction %s not valid for DataType %s" % (state["MatrixInstruction"], state["ProblemType"]["DataType"]))
 
       # set EnableMatrixInstruction
       state["EnableMatrixInstruction"] = True
